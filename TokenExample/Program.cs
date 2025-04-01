@@ -1,10 +1,11 @@
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<TokenService>();
+builder.Services.AddSingleton<OrderService>();
 
 var app = builder.Build();
 
@@ -15,9 +16,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
+
+var orderService = app.Services.GetRequiredService<OrderService>();
+var timer = new Timer(async _ => await orderService.FetchOrdersAsync(), null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
 
 app.Run();
